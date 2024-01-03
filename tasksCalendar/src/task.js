@@ -6,10 +6,11 @@ var quick_import = function(...path) {
 
 const TASK_KEYS = [
     "text",
-    "path",
-    "status",
-    "link",
-    "header"
+    "path", "link",
+    "header",
+
+    "completed", "checked", "status",
+    "completion", "due", "scheduled"
 ]
 
 class Task {

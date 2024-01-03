@@ -10,7 +10,6 @@
  */
 
 function momentToRegex(momentFormat) {
-    console.log(momentFormat)
 	momentFormat = momentFormat.replaceAll(".", "\\.");
 	momentFormat = momentFormat.replaceAll(",", "\\,");
 	momentFormat = momentFormat.replaceAll("-", "\\-");
