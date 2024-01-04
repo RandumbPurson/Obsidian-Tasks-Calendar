@@ -59,6 +59,7 @@ class Settings {
 
     #defaults() {
         if (!this.dailyNoteFormat) this.dailyNoteFormat = "YYYY-MM-DD";
+        this.dailyNoteFolder = (this.dailyNoteFolder)? this.dailyNoteFolder+"/" : "";
     }
 
     getTasks() {

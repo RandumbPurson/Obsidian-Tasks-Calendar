@@ -6,7 +6,6 @@ var quick_import = function(...path) {
     var pathBase = Path.join(this.app.vault.adapter.basePath, "extras", "Obsidian-Tasks-Calendar", "tasksCalendar")
     return require(Path.join(pathBase, Path.join(...path)))
 }
-var icons = quick_import("resources", "icons")
 
 // Load settings and get tasks
 var Settings = quick_import("src", "settings")
@@ -23,63 +22,56 @@ var tMonth = moment().format("M");
 var tDay = moment().format("d");
 var tYear = moment().format("YYYY");
 var tid = (new Date()).getTime();
-if (startPosition) { var selectedMonth = moment(startPosition, "YYYY-MM").date(1);  var selectedList = moment(startPosition, "YYYY-MM").date(1); var selectedWeek = moment(startPosition, "YYYY-ww").startOf("week") } else { var selectedMonth = moment(startPosition).date(1); var selectedWeek = moment(startPosition).startOf("week"); var selectedList = moment(startPosition).date(1); };
-var selectedDate = eval("selected"+capitalize(view));
+if (startPosition) { 
+    var selectedMonth = moment(startPosition, "YYYY-MM").date(1);
+    var selectedList = moment(startPosition, "YYYY-MM").date(1);
+    var selectedWeek = moment(startPosition, "YYYY-ww").startOf("week")
+} else {
+    var selectedMonth = moment(startPosition).date(1);
+    var selectedWeek = moment(startPosition).startOf("week");
+    var selectedList = moment(startPosition).date(1);
+};
+// var selectedDate = eval("selected"+capitalize(view));
 var cellTemplate = "<div class='cell {{class}}' data-weekday='{{weekday}}'><a class='internal-link cellName' href='{{dailyNote}}'>{{cellName}}</a><div class='cellContent'>{{cellContent}}</div></div>";
 var taskTemplate = "<a class='internal-link' href='{{taskPath}}'><div class='task {{class}}' style='{{style}}' title='{{title}}'><div class='inner'><div class='note'>{{note}}</div><div class='icon'>{{icon}}</div><div class='description' data-relative='{{relative}}'>{{taskContent}}</div></div></div></a>";
 const rootNode = dv.el("div", "", {cls: "tasksCalendar "+options, attr: {id: "tasksCalendar"+tid, view: view, style: 'position:relative;-webkit-user-select:none!important'}});
 if (css) { var style = document.createElement("style"); style.innerHTML = css; rootNode.append(style) };
 
 // Initialze
-setButtons();
+var FilterManager = quick_import("src", "filterManager")
+var filterManager = new FilterManager(tasks)
+
+var Calendar = quick_import("views", "calendar")
+var calendar = new Calendar(filterManager, settings)
+
+var MonthView = quick_import("views", "month")
+var monthView = new MonthView(calendar)
+monthView.getMonth(selectedMonth)
+/*
 setStatisticPopUp();
 setWeekViewContext();
-eval("get"+capitalize(view))(tasks, selectedDate);
+//eval("get"+capitalize(view))(tasks, selectedDate);
 
 
 function capitalize(str) {
 	return str[0].toUpperCase() + str.slice(1);
 };
 
-function getMetaFromNote(task, metaName) {
-	var meta = dv.pages('"'+task.link.path+'"')[metaName][0];
-	if (meta) { return meta } else { return "" };
-}
-
-function transColor(color, percent) {
-	var num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, B = (num >> 8 & 0x00FF) + amt, G = (num & 0x0000FF) + amt;
-	return "#" + (0x1000000 + (R<255?R<1?0:R:255)*0x10000 + (B<255?B<1?0:B:255)*0x100 + (G<255?G<1?0:G:255)).toString(16).slice(1);
-};
-
-
-function getTasks(date) {
-	done = tasks.filter(t=>t.completed && t.checked && t.completion && moment(t.completion.toString()).isSame(date)).sort(t=>t.completion);
-	doneWithoutCompletionDate = tasks.filter(t=>t.completed && t.checked && !t.completion && t.due && moment(t.due.toString()).isSame(date)).sort(t=>t.due);
-	done = done.concat(doneWithoutCompletionDate);
-	due = tasks.filter(t=>!t.completed && !t.checked && !t.recurrence && t.due && moment(t.due.toString()).isSame(date)).sort(t=>t.due);
-	recurrence = tasks.filter(t=>!t.completed && !t.checked && t.recurrence && t.due && moment(t.due.toString()).isSame(date)).sort(t=>t.due);
-	overdue = tasks.filter(t=>!t.completed && !t.checked && t.due && moment(t.due.toString()).isBefore(date)).sort(t=>t.due);
-	start = tasks.filter(t=>!t.completed && !t.checked && t.start && moment(t.start.toString()).isSame(date)).sort(t=>t.start);
-	scheduled = tasks.filter(t=>!t.completed && !t.checked && t.scheduled && moment(t.scheduled.toString()).isSame(date)).sort(t=>t.scheduled);
-	process = tasks.filter(t=>!t.completed && !t.checked && t.due && t.start && moment(t.due.toString()).isAfter(date) && moment(t.start.toString()).isBefore(date) );
-	cancelled = tasks.filter(t=>!t.completed && t.checked && t.due && moment(t.due.toString()).isSame(date)).sort(t=>t.due);
-	dailyNote = tasks.filter(t=>!t.completed && !t.checked && t.dailyNote && moment(t.dailyNote.toString()).isSame(date)).sort(t=>t.dailyNote);
-};
 
 function setTask(obj, cls) {
 	var lighter = 25;
 	var darker = -40;
-	var noteColor = getMetaFromNote(obj, "color");
-	var textColor = getMetaFromNote(obj, "textColor");
-	var noteIcon = getMetaFromNote(obj, "icon");
-	var taskText = obj.text.replace("'", "&apos;");
+	// var noteColor = getMetaFromNote(obj, "color");
+	// var textColor = getMetaFromNote(obj, "textColor");
+	// var noteIcon = getMetaFromNote(obj, "icon");
+	// var taskText = obj.text.replace("'", "&apos;");
 	var taskPath = obj.link.path.replace("'", "&apos;");
 	var taskIcon = icons["task"+capitalize(cls)+"Icon"];
-	if (obj.due) { var relative = moment(obj.due).fromNow() } else { var relative = "" };
-	var noteFilename = obj.filename;
+	// if (obj.due) { var relative = moment(obj.due).fromNow() } else { var relative = "" };
+	// var noteFilename = obj.filename;
 	if (noteIcon) { noteFilename = noteIcon+"&nbsp;"+noteFilename } else { noteFilename = taskIcon+"&nbsp;"+noteFilename; cls += " noNoteIcon" };
-	var taskSubpath = obj.header.subpath;
-	var taskLine = taskSubpath ? taskPath+"#"+taskSubpath : taskPath;
+	// var taskSubpath = obj.header.subpath;
+	// var taskLine = taskSubpath ? taskPath+"#"+taskSubpath : taskPath;
  	if (noteColor && textColor) {
  		var style = "--task-background:"+noteColor+"33;--task-color:"+noteColor+";--dark-task-text-color:"+textColor+";--light-task-text-color:"+textColor;
  	} else if (noteColor && !textColor){
@@ -136,12 +128,8 @@ function setTaskContentContainer(currentDate) {
 	return cellContent;
 };
 
-function setButtons() {
-	var buttons = "<button class='filter'>"+icons.filterIcon+"</button><button class='listView' title='List'>"+icons.listIcon+"</button><button class='monthView' title='Month'>"+icons.monthIcon+"</button><button class='weekView' title='Week'>"+icons.weekIcon+"</button><button class='current'></button><button class='previous'>"+icons.arrowLeftIcon+"</button><button class='next'>"+icons.arrowRightIcon+"</button><button class='statistic' percentage=''></button>";
-	rootNode.querySelector("span").appendChild(dv.el("div", buttons, {cls: "buttons", attr: {}}));
-	setButtonEvents();
-};
-
+//  #TODO
+//  - change setButtonEvents discrete definitions?
 function setButtonEvents() {
 	rootNode.querySelectorAll('button').forEach(btn => btn.addEventListener('click', (() => {
 		var activeView = rootNode.getAttribute("view");
@@ -388,6 +376,7 @@ function getMonth(tasks, month) {
 
 			// Filter Tasks
 			getTasks(currentDate);
+            var filtered = filterManager.filter(currentDate)
 			
 			// Count Events Only From Selected Month
 			if (moment(month).format("MM") == moment(month).add(i, "days").format("MM")) {
@@ -571,3 +560,4 @@ function getList(tasks, month) {
 		listElement.scrollTo(0, scrollPos);
 	};
 };
+ */

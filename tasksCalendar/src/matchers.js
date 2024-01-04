@@ -128,4 +128,10 @@ exports.general = (task, settings) => {
     task.text = task.text.replaceAll("[[","");
     task.text = task.text.replaceAll("]]","");
     task.text = task.text.replace(/\[.*?\]/gm,"");
+	task.text = task.text.replace("'", "&apos;"); // May need to be applied later?
+}
+
+exports.subpath = (task, settings) => {
+    var subpath = task.header.subpath;
+    task.path = subpath ? task.path+"#"+subpath : task.path
 }
